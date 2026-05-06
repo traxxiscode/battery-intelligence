@@ -10,28 +10,19 @@
 <body>
 <div id="batteryCrankingHealth" style="display:none;">
 <div id="app">
-  <div class="hero">
-    <div class="brandBar">
-      <img class="brandMark" src="https://cdn.baseline.is/static/content/logos/mDtvptChQ3XwBLuxuu5hip-lala.svg" alt="Traxxis GPS logo"/>
-      <div class="brandText">
-        <div class="brandName">Traxxis GPS</div>
-        <div class="brandSub">Battery Intelligence</div>
+  <div class="controls-section">
+    <div class="top-toolbar">
+      <div class="title-block">
+        <div class="page-title">Battery Intelligence</div>
+        <div class="page-meta" id="lastUpdatedLabel">Waiting for first analysis</div>
+      </div>
+      <div class="toolbar-actions">
+        <button id="rulesButton" class="btn btnSecondary" type="button">How Status Works</button>
+        <button id="exportButton" class="btn btnSecondary">Export CSV</button>
+        <button id="retryButton" class="btn btnSecondary hidden">Retry</button>
+        <button id="refreshButton" class="btn btnPrimary">Refresh Analysis</button>
       </div>
     </div>
-    <p class="eyebrow">Fleet Maintenance</p>
-    <p class="copy">Review battery health across the fleet, then open any vehicle for a simple breakdown of voltage history, activity patterns, and what the recent data likely means.</p>
-    <div class="actions">
-      <button id="refreshButton" class="btn btnPrimary">Refresh Analysis</button>
-      <button id="retryButton" class="btn btnSecondary hidden">Retry</button>
-      <button id="rulesButton" class="btn btnGhost" type="button">How Status Works</button>
-      <button id="exportButton" class="btn btnSecondary">Export CSV</button>
-      <span class="stamp" id="lastUpdatedLabel">Waiting for first analysis</span>
-    </div>
-  </div>
-  <div class="panel">
-    <div class="status" id="statusMessage">Waiting for Geotab connection...</div>
-    <div class="helper" id="statusHelper">This review version keeps the fleet summary you already trust and adds a clear vehicle-by-vehicle breakdown you can use right away.</div>
-    <div id="debugBox" class="debug hidden"></div>
     <div id="rulesPanel" class="rulesPanel hidden">
       <p class="rulesTitle">Status Logic</p>
       <ul class="rulesList">
@@ -46,59 +37,79 @@
       </ul>
     </div>
   </div>
-  <div class="summaryGrid">
-    <div class="summaryCard neutral"><div class="labelRow"><p class="label">Vehicles Reviewed</p></div><p class="value" id="vehiclesReviewed">0</p></div>
-    <div class="summaryCard criticalBg"><div class="labelRow"><p class="label">Needs Attention</p></div><p class="value" id="criticalVehicles">0</p></div>
-    <div class="summaryCard warningBg"><div class="labelRow"><p class="label">Watch List</p></div><p class="value" id="warningVehicles">0</p></div>
-    <div class="summaryCard healthyBg"><div class="labelRow"><p class="label">Healthy</p></div><p class="value" id="healthyVehicles">0</p></div>
+
+  <div id="loadingState" class="loading-state">
+    <div class="spinner-ring"></div>
+    <div id="loadingTitle" class="loading-title">Loading battery intelligence...</div>
+    <div id="loadingDetail" class="loading-detail">Fetching cranking voltage and trip activity data.</div>
   </div>
-  <div class="panel">
-    <div class="controls">
-      <span class="controlLabel">Group</span>
-      <select id="groupFilter" class="select"></select>
-      <span class="controlLabel">Status</span>
-      <select id="statusFilter" class="select">
-        <option value="__all__">All statuses</option>
-        <option value="critical">Needs Attention</option>
-        <option value="warning">Watch List</option>
-        <option value="healthy">Healthy</option>
-      </select>
-      <span class="controlLabel">Search</span>
-      <input id="searchFilter" class="search" type="text" placeholder="Search vehicle..." />
+
+  <div id="noticeBanner" class="notice-banner hidden"></div>
+  <div id="debugBox" class="debug hidden"></div>
+
+  <div id="resultsShell" class="results-shell" style="display:none;">
+    <div class="summaryGrid">
+      <div class="summaryCard neutral"><div class="labelRow"><p class="label">Vehicles Reviewed</p></div><p class="value" id="vehiclesReviewed">0</p></div>
+      <div class="summaryCard criticalBg"><div class="labelRow"><p class="label">Needs Attention</p></div><p class="value" id="criticalVehicles">0</p></div>
+      <div class="summaryCard warningBg"><div class="labelRow"><p class="label">Watch List</p></div><p class="value" id="warningVehicles">0</p></div>
+      <div class="summaryCard healthyBg"><div class="labelRow"><p class="label">Healthy</p></div><p class="value" id="healthyVehicles">0</p></div>
     </div>
-  </div>
-  <div class="tableWrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Vehicle</th>
-          <th>Status</th>
-          <th>Recent Avg</th>
-          <th>6-Month Avg</th>
-          <th>Lowest</th>
-          <th>Weak Reads</th>
-          <th>Inactivity Context</th>
-          <th>Trend</th>
-          <th>Recommended Action</th>
-          <th>Review</th>
-        </tr>
-      </thead>
-      <tbody id="vehicleTableBody">
-        <tr><td colspan="10" class="empty">No analysis has been run yet.</td></tr>
-      </tbody>
-    </table>
+
+    <div class="filters-section">
+      <div class="controls">
+        <div class="filter-group">
+          <span class="controlLabel">Group</span>
+          <select id="groupFilter" class="select"></select>
+        </div>
+        <div class="filter-group">
+          <span class="controlLabel">Status</span>
+          <select id="statusFilter" class="select">
+            <option value="__all__">All statuses</option>
+            <option value="critical">Needs Attention</option>
+            <option value="warning">Watch List</option>
+            <option value="healthy">Healthy</option>
+          </select>
+        </div>
+        <div class="filter-group filter-group--search">
+          <span class="controlLabel">Search</span>
+          <input id="searchFilter" class="search" type="text" placeholder="Search vehicle..." />
+        </div>
+      </div>
+    </div>
+
+    <div class="tableWrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Status</th>
+            <th>Recent Avg</th>
+            <th>6-Month Avg</th>
+            <th>Lowest</th>
+            <th>Weak Reads</th>
+            <th>Inactivity Context</th>
+            <th>Trend</th>
+            <th>Recommended Action</th>
+            <th>Review</th>
+          </tr>
+        </thead>
+        <tbody id="vehicleTableBody">
+          <tr><td colspan="10" class="empty">No analysis has been run yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 <div id="reviewModal" class="modalShell hidden" aria-hidden="true">
   <div class="modalCard">
     <div class="modalTop">
       <div>
-        <p class="eyebrow">Vehicle Battery Review</p>
+        <p class="modalEyebrow">Vehicle Battery Review</p>
         <h2 id="reviewTitle" class="modalTitle">Select a vehicle</h2>
         <div id="reviewMeta" class="reviewMeta"></div>
         <p id="reviewCopy" class="modalCopy">Click a vehicle row to open a deeper investigative view with cycle and inactivity context.</p>
       </div>
-      <div class="reviewMeta">
+      <div class="reviewMeta reviewActions">
         <button id="exportPdfButton" class="reviewBtn" type="button">Export PDF</button>
         <button id="closeReviewButton" class="closeBtn" type="button">Close Review</button>
       </div>
@@ -127,12 +138,11 @@
         <ul id="reviewEvents" class="eventList"></ul>
       </div>
     </div>
-    <div class="reviewSection" style="margin-top:16px">
+    <div class="reviewSection reviewSection--analysis">
       <h3>Analysis</h3>
       <div id="reviewSplit" class="splitNote"></div>
     </div>
   </div>
-</div>
 </div>
 <script src="addin.js"></script>
 </body>
