@@ -1,0 +1,138 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Traxxis Battery Intelligence</title>
+<link href="addin.css" rel="stylesheet"/>
+</head>
+<body>
+<div id="batteryCrankingHealth" style="display:none;">
+<div id="app">
+  <div class="hero">
+    <div class="brandBar">
+      <img class="brandMark" src="https://marksmith9192-afk.github.io/Geotab/Traxxis%20T%20logo%20(PNG%20file%20with%20transparent%20background).png" alt="Traxxis GPS logo"/>
+      <div class="brandText">
+        <div class="brandName">Traxxis GPS</div>
+        <div class="brandSub">Traxxis Battery Intellegence</div>
+      </div>
+    </div>
+    <p class="eyebrow">Fleet Maintenance</p>
+    <p class="copy">Review battery health across the fleet, then open any vehicle for a simple breakdown of voltage history, activity patterns, and what the recent data likely means.</p>
+    <div class="actions">
+      <button id="refreshButton" class="btn btnPrimary">Refresh Analysis</button>
+      <button id="retryButton" class="btn btnSecondary hidden">Retry</button>
+      <button id="rulesButton" class="btn btnGhost" type="button">How Status Works</button>
+      <button id="exportButton" class="btn btnSecondary">Export CSV</button>
+      <span class="stamp" id="lastUpdatedLabel">Waiting for first analysis</span>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="status" id="statusMessage">Waiting for Geotab connection...</div>
+    <div class="helper" id="statusHelper">This review version keeps the fleet summary you already trust and adds a clear vehicle-by-vehicle breakdown you can use right away.</div>
+    <div id="debugBox" class="debug hidden"></div>
+    <div id="rulesPanel" class="rulesPanel hidden">
+      <p class="rulesTitle">Status Logic</p>
+      <ul class="rulesList">
+        <li><strong>Needs Attention</strong>: used for sustained recent weakness, not one-off dips. It typically requires a low recent average or multiple warning signals together, such as a high weak-read rate combined with worsening trend.</li>
+        <li><strong>Watch List</strong>: used when early warning signs are present but the overall recent average is still fairly normal. This is often the right status for vehicles that show occasional weak starts or mild deterioration.</li>
+        <li><strong>Healthy</strong>: shown when the recent average, weak-read rate, and recent trend do not suggest a sustained problem.</li>
+        <li><strong>Weak read</strong>: any cranking-voltage reading at or below 10.2 V during the recent 45-day window.</li>
+        <li><strong>Deep low events</strong>: repeated reads at or below 9.4 V add weight, but they do not create a Needs Attention status by themselves. They need to line up with the recent average, the share of weak reads, or weak starts during normal use.</li>
+        <li><strong>Inactivity context</strong>: low-voltage events are compared with trip gaps. If most weak reads happen after 7 or more idle days and very few happen during normal use, we treat the result more cautiously and explain that in the review.</li>
+        <li><strong>Recent shift</strong>: if the last few weeks look meaningfully worse than the couple of weeks before that, the review notes an estimated date when the sharper change appears to begin.</li>
+        <li><strong>Vehicle review</strong>: the detailed view turns the data into a plain-English summary, shows the recent voltage pattern, highlights usage activity, and gives you a printable export.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="summaryGrid">
+    <div class="summaryCard neutral"><div class="labelRow"><p class="label">Vehicles Reviewed</p></div><p class="value" id="vehiclesReviewed">0</p></div>
+    <div class="summaryCard criticalBg"><div class="labelRow"><p class="label">Needs Attention</p></div><p class="value" id="criticalVehicles">0</p></div>
+    <div class="summaryCard warningBg"><div class="labelRow"><p class="label">Watch List</p></div><p class="value" id="warningVehicles">0</p></div>
+    <div class="summaryCard healthyBg"><div class="labelRow"><p class="label">Healthy</p></div><p class="value" id="healthyVehicles">0</p></div>
+  </div>
+  <div class="panel">
+    <div class="controls">
+      <span class="controlLabel">Group</span>
+      <select id="groupFilter" class="select"></select>
+      <span class="controlLabel">Status</span>
+      <select id="statusFilter" class="select">
+        <option value="__all__">All statuses</option>
+        <option value="critical">Needs Attention</option>
+        <option value="warning">Watch List</option>
+        <option value="healthy">Healthy</option>
+      </select>
+      <span class="controlLabel">Search</span>
+      <input id="searchFilter" class="search" type="text" placeholder="Search vehicle..." />
+    </div>
+  </div>
+  <div class="tableWrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Status</th>
+          <th>Recent Avg</th>
+          <th>6-Month Avg</th>
+          <th>Lowest</th>
+          <th>Weak Reads</th>
+          <th>Inactivity Context</th>
+          <th>Trend</th>
+          <th>Recommended Action</th>
+          <th>Review</th>
+        </tr>
+      </thead>
+      <tbody id="vehicleTableBody">
+        <tr><td colspan="10" class="empty">No analysis has been run yet.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div id="reviewModal" class="modalShell hidden" aria-hidden="true">
+  <div class="modalCard">
+    <div class="modalTop">
+      <div>
+        <p class="eyebrow">Vehicle Battery Review</p>
+        <h2 id="reviewTitle" class="modalTitle">Select a vehicle</h2>
+        <div id="reviewMeta" class="reviewMeta"></div>
+        <p id="reviewCopy" class="modalCopy">Click a vehicle row to open a deeper investigative view with cycle and inactivity context.</p>
+      </div>
+      <div class="reviewMeta">
+        <button id="exportPdfButton" class="reviewBtn" type="button">Export PDF</button>
+        <button id="closeReviewButton" class="closeBtn" type="button">Close Review</button>
+      </div>
+    </div>
+    <div class="kpiGrid">
+      <div class="kpi"><div class="kpiLabel">Recent Avg</div><div id="reviewRecentAvg" class="kpiValue">N/A</div><div class="kpiSub">Last 45 days</div></div>
+      <div class="kpi"><div class="kpiLabel">6-Month Avg</div><div id="reviewOverallAvg" class="kpiValue">N/A</div><div class="kpiSub">Context over full review window</div></div>
+      <div class="kpi"><div class="kpiLabel">Weak Reads</div><div id="reviewWeakReads" class="kpiValue">0</div><div class="kpiSub">Recent weak-read share</div></div>
+      <div class="kpi"><div class="kpiLabel">Longest Idle Gap</div><div id="reviewIdleGap" class="kpiValue">N/A</div><div class="kpiSub">Recent trip inactivity</div></div>
+    </div>
+    <div class="reviewGrid">
+      <div class="reviewSection">
+        <h3>Cranking Voltage Timeline</h3>
+        <div id="reviewVoltageChart"></div>
+      </div>
+      <div class="reviewSection">
+        <h3>Cycle Pattern Summary</h3>
+        <ul id="reviewNarrative" class="narrativeList"></ul>
+      </div>
+      <div class="reviewSection">
+        <h3>Trip Activity Density</h3>
+        <div id="reviewTripChart"></div>
+      </div>
+      <div class="reviewSection">
+        <h3>Notable Battery Events</h3>
+        <ul id="reviewEvents" class="eventList"></ul>
+      </div>
+    </div>
+    <div class="reviewSection" style="margin-top:16px">
+      <h3>Analysis</h3>
+      <div id="reviewSplit" class="splitNote"></div>
+    </div>
+  </div>
+</div>
+</div>
+<script src="addin.js"></script>
+</body>
+</html>
