@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -41,10 +41,13 @@
   <div id="loadingState" class="loading-state">
     <div class="spinner-ring"></div>
     <div id="loadingTitle" class="loading-title">Loading battery intelligence...</div>
-    <div id="loadingDetail" class="loading-detail">Fetching cranking voltage and trip activity data.</div>
+    <div id="loadingDetail" class="loading-detail">Fetching cranking voltage data.</div>
+    <div class="loading-progress" aria-hidden="true"><div id="loadingProgressFill" class="loading-progress-fill"></div></div>
+    <div id="loadingStageText" class="loading-stage-text">Starting analysis...</div>
   </div>
 
   <div id="noticeBanner" class="notice-banner hidden"></div>
+  <p class="disclaimer-note">If a vehicle has not produced cranking voltage data over the past 14 days, it will not be shown.</p>
   
   <div id="resultsShell" class="results-shell" style="display:none;">
     <div class="summaryGrid">
@@ -83,7 +86,7 @@
             <th>Vehicle</th>
             <th>Status</th>
             <th>Recent Avg</th>
-            <th>6-Month Avg</th>
+            <th>14-Day Avg</th>
             <th>Lowest</th>
             <th>Weak Reads</th>
             <th>Inactivity Context</th>
@@ -114,8 +117,8 @@
       </div>
     </div>
     <div class="kpiGrid">
-      <div class="kpi"><div class="kpiLabel">Recent Avg</div><div id="reviewRecentAvg" class="kpiValue">N/A</div><div class="kpiSub">Last 45 days</div></div>
-      <div class="kpi"><div class="kpiLabel">6-Month Avg</div><div id="reviewOverallAvg" class="kpiValue">N/A</div><div class="kpiSub">Context over full review window</div></div>
+      <div class="kpi"><div class="kpiLabel">Recent Avg</div><div id="reviewRecentAvg" class="kpiValue">N/A</div><div class="kpiSub">Last 14 days</div></div>
+      <div class="kpi"><div class="kpiLabel">14-Day Avg</div><div id="reviewOverallAvg" class="kpiValue">N/A</div><div class="kpiSub">Context over full review window</div></div>
       <div class="kpi"><div class="kpiLabel">Weak Reads</div><div id="reviewWeakReads" class="kpiValue">0</div><div class="kpiSub">Recent weak-read share</div></div>
       <div class="kpi"><div class="kpiLabel">Longest Idle Gap</div><div id="reviewIdleGap" class="kpiValue">N/A</div><div class="kpiSub">Recent trip inactivity</div></div>
     </div>
