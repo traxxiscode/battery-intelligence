@@ -95,3 +95,8 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:
 @media (max-width:640px){#app{padding:14px 10px 24px}.page-title{font-size:1.55rem}.summaryGrid{grid-template-columns:1fr}.summaryCard{border-right:none;border-bottom:1px solid var(--border)}.summaryCard:last-child{border-bottom:none}.filter-group,.filter-group--search{min-width:100%;flex:1 1 100%}.search{min-width:100%}.kpiGrid,.splitNote{grid-template-columns:1fr}.toolbar-actions{width:100%}.toolbar-actions .btn{flex:1 1 160px}.modalCard{padding:16px}}
 
 
+
+.inlineReviewRow td{padding:0;border-bottom:none;background:transparent}
+.inlineReviewCell{padding:0 !important}
+.inlineReviewRow .modalShell{margin-top:0;padding:0 0 16px}
+.inlineReviewRow .modalCard{width:100%;margin:0;border-radius:0 0 18px 18px;box-shadow:none;border-top:0}
